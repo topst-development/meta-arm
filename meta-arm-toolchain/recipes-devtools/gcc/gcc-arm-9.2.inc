@@ -3,6 +3,13 @@ require recipes-devtools/gcc/gcc-common.inc
 # Third digit in PV should be incremented after a minor release
 
 PV = "arm-9.2"
+CVE_VERSION = "9.2"
+
+# CVE-2019-15847 is only relevant to POWER9 architecture
+CVE_CHECK_IGNORE += "CVE-2019-15847"
+
+# CVE-2021-37322 is in binutils < 2.32, not in gcc
+CVE_CHECK_IGNORE += "CVE-2021-37322"
 
 # BINV should be incremented to a revision after a minor gcc release
 
@@ -17,7 +24,7 @@ FILESEXTRAPATHS =. "${FILE_DIRNAME}/gcc-arm-9.2:${FILE_DIRNAME}/gcc-arm-9.2/back
 DEPENDS =+ "mpfr gmp libmpc zlib flex-native"
 NATIVEDEPS = "mpfr-native gmp-native libmpc-native zlib-native flex-native"
 
-LICENSE = "GPL-3.0-with-GCC-exception & GPLv3"
+LICENSE = "GPL-3.0-with-GCC-exception & GPL-3.0-only"
 
 LIC_FILES_CHKSUM = "\
     file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552 \
@@ -67,7 +74,10 @@ SRC_URI = "\
            file://0035-Fix-for-testsuite-failure.patch \
            file://0036-Re-introduce-spe-commandline-options.patch \
            file://0037-Fix-up-libsanitizer-build-with-master-glibc.patch \
+           file://0001-Backport-fix-for-PR-tree-optimization-97236-fix-bad-.patch \
 "
+SRC_URI += "file://0037-libatomic-Do-not-enforce-march-on-aarch64.patch"
+
 SRC_URI[md5sum] = "9c570fc4286825b4e6f67b3d34aade23"
 
 S = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-arm-src-snapshot-9.2-2019.12"
@@ -82,7 +92,7 @@ JAVA = ""
 
 LTO = "--enable-lto"
 SSP ?= "--disable-libssp"
-SSP_mingw32 = "--enable-libssp"
+SSP:mingw32 = "--enable-libssp"
 
 EXTRA_OECONF_BASE = "\
     ${LTO} \
@@ -114,7 +124,7 @@ EXTRA_OECONF_INITIAL = "\
     --disable-libssp \
 "
 
-EXTRA_OECONF_append_aarchilp32 = " --with-abi=ilp32"
+EXTRA_OECONF:append:aarchilp32 = " --with-abi=ilp32"
 
 EXTRA_OECONF_PATHS = "\
     --with-gxx-include-dir=/not/exist{target_includedir}/c++/${BINV} \
